@@ -281,8 +281,8 @@ int main() {
 
     // Выводим найденые осевые точки на экран
     std::cout << std::endl;
-    std::cout << P0.Name << "[" << P0.NumberOfPoint << "] (" << P0.X << ", " << P0.Y << ", " << P0.Z << std::endl;
-    std::cout << P1.Name << "[" << P1.NumberOfPoint << "] (" << P1.X << ", " << P1.Y << ", " << P1.Z << std::endl;
+    std::cout << P0.Name << "[" << P0.NumberOfPoint << "] (" << P0.X << ", " << P0.Y << ", " << P0.Z << ")" << std::endl;
+    std::cout << P1.Name << "[" << P1.NumberOfPoint << "] (" << P1.X << ", " << P1.Y << ", " << P1.Z << ")" << std::endl;
 #pragma endregion
 
     // Вычисление ширины
