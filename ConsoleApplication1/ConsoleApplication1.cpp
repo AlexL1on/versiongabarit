@@ -197,10 +197,10 @@ int main() {
    // MDD = dict(sorted(MD.items(), key = lambda item : item[1], reverse = True))
 
     // Осевые точки
-    double P0 = P[0];
-    double P1 = P[1];
+    //double P0 = P[0];
+    //double P1 = P[1];
     // Вычисление длины
-    float length = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2) + pow(z2 - z1, 2) * 1.0);
+    //float length = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2) + pow(z2 - z1, 2) * 1.0);
 
     // Вычисление ширины
     std::vector<double> dists;
