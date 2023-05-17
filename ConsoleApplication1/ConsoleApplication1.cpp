@@ -5,18 +5,33 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
+#include <map>
+#include <list>
 
 class Point3D {
 public:
+    // Координаты вершины
     double X;
     double Y;
     double Z;
+    // Кол-во точек возле вершины
+    int NumberOfPoint;
+    // Имя точки
     std::string Name;
     Point3D(double x, double y, double z, std::string name) {
         X = x;
         Y = y;
         Z = z;
         Name = name;
+    }
+    // Метод для установки кол-ва точек
+    void setNumberOfPoint(int numberofpoints)
+    {
+        NumberOfPoint = numberofpoints;
+    }
+    // Переопределяем оператор для возможности сортировки
+    bool operator< (const Point3D& p) {
+        return NumberOfPoint < p.NumberOfPoint;
     }
 };
 
@@ -107,7 +122,6 @@ double lineseg_dist(std::vector<double> p, std::vector<double> a, std::vector<do
     return CD;
 }
 
-//float d = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2) + pow(z2 - z1, 2) * 1.0);
 int main() {
     std::vector<int> X2D;
     std::vector<int> Y2D;
@@ -193,14 +207,83 @@ int main() {
     size_t m7 = get_sum_count(X, Y, Z, M7, M0);
     size_t m8 = get_sum_count(X, Y, Z, M8, M0);
 
-    //MD = { M1: m1, M2 : m2, M3 : m3, M4 : m4, M5 : m5, M6 : m6, M7 : m7, M8 : m8 }
-   // MDD = dict(sorted(MD.items(), key = lambda item : item[1], reverse = True))
+#pragma region Расчет осевых точек
+    // Устанавливаем кол-во точек около габаритной точки
+    M1.setNumberOfPoint(m1);
+    M2.setNumberOfPoint(m2);
+    M3.setNumberOfPoint(m3);
+    M4.setNumberOfPoint(m4);
+    M5.setNumberOfPoint(m5);
+    M6.setNumberOfPoint(m6);
+    M7.setNumberOfPoint(m7);
+    M8.setNumberOfPoint(m8);
 
-    // Осевые точки
-    //double P0 = P[0];
-    //double P1 = P[1];
-    // Вычисление длины
-    //float length = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2) + pow(z2 - z1, 2) * 1.0);
+    // Формируем список
+    std::list<Point3D> M;
+    M.push_back(M1);
+    M.push_back(M2);
+    M.push_back(M3);
+    M.push_back(M4);
+    M.push_back(M5);
+    M.push_back(M6);
+    M.push_back(M7);
+    M.push_back(M8);
+    // Вывод неотсортированного списка
+    std::cout << std::endl;
+    std::cout << std::endl << "M[] points:" << std::endl;
+    for (auto it = M.begin(); it != M.end(); it++)
+        std::cout << it->Name << ": [" << it->NumberOfPoint << "]" << std::endl;
+        
+    // Сортировка
+    M.sort();
+    M.reverse();
+    // Вывод отсортированного списка
+    std::cout << std::endl;
+    std::cout << std::endl << "M[] points (sorted):" << std::endl;
+    for (auto it = M.begin(); it != M.end(); it++)
+        std::cout << it->Name << ": [" << it->NumberOfPoint << "]" << std::endl;
+
+    std::cout << std::endl;
+    // Формируем список осевых точек
+    std::list<Point3D> P;
+    // Первая точка берется из отсортированного списка MD
+    P.push_back(M.front());
+    auto& P0 = M.front();
+
+    double m0_dist;
+    double p0_dist;
+    bool same_x;
+    bool same_y;
+    bool same_z;
+    bool same_xyz;
+
+    // Начинаем проверку со второй точки
+    for (auto it = std::next(M.begin()); it != M.end(); ++it)
+    {
+        m0_dist = get_distance(*it, M0);  // Расстояние от текущей точки до центра масс
+        p0_dist = get_distance(*it, P0);  // Расстояние между точками P0 и текущей
+
+        // Проверяем, не лежат ли точки в одной плоскости
+        same_x = it->X == P0.X;
+        same_y = it->Y == P0.Y;
+        same_z = it->Z == P0.Z;
+        same_xyz = !(same_x || same_y || same_z);
+        // if (m0_dist < p0_dist)
+        if ((m0_dist < p0_dist) && same_xyz)
+        {
+            // Добавляем найденную точку в список
+            P.push_back(*it);
+            // Если нужная точка найдена, прекращаем перебор
+            break;
+        }   
+    }
+    auto& P1 = P.back();
+
+    // Выводим найденые осевые точки на экран
+    std::cout << std::endl;
+    std::cout << P0.Name << "[" << P0.NumberOfPoint << "] (" << P0.X << ", " << P0.Y << ", " << P0.Z << std::endl;
+    std::cout << P1.Name << "[" << P1.NumberOfPoint << "] (" << P1.X << ", " << P1.Y << ", " << P1.Z << std::endl;
+#pragma endregion
 
     // Вычисление ширины
     std::vector<double> dists;
