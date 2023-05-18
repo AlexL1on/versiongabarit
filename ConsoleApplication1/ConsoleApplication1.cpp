@@ -40,9 +40,9 @@ double get_distance(Point3D p1, Point3D p2) {
 }
 
 double get_sum_distance(std::vector<double> X,
-                        std::vector<double> Y,
-                        std::vector<double> Z,
-                        Point3D MN, Point3D M0) {
+    std::vector<double> Y,
+    std::vector<double> Z,
+    Point3D MN, Point3D M0) {
     double max_dist = get_distance(MN, M0);
     std::vector<double> distances;
     for (size_t i = 0; i < X.size(); i++) {
@@ -54,9 +54,9 @@ double get_sum_distance(std::vector<double> X,
 }
 
 size_t get_sum_count(std::vector<double> X,
-                     std::vector<double> Y,
-                     std::vector<double> Z,
-                     Point3D MN, Point3D M0) {
+    std::vector<double> Y,
+    std::vector<double> Z,
+    Point3D MN, Point3D M0) {
     double max_dist = get_distance(MN, M0);
     size_t N = 0;
     for (size_t i = 0; i < X.size(); i++) {
@@ -87,7 +87,7 @@ std::vector<double> cross(std::vector<double> a, std::vector<double> b) {
     double x1 = a[1] * b[2] - a[2] * b[1];
     double y1 = a[2] * b[0] - a[0] * b[2];
     double z1 = a[0] * b[1] - a[1] * b[0];
-    std::vector<double> res = {x1, y1, z1};
+    std::vector<double> res = { x1, y1, z1 };
     return res;
 }
 
@@ -117,7 +117,7 @@ int np_dot(std::vector<double> v1, std::vector<double> v2) {
 double lineseg_dist(std::vector<double> p, std::vector<double> a, std::vector<double> b) {
     std::vector<double> AB = substr(b, a);
     std::vector<double> AC = substr(p, a);
-    double area = np_linalg_norm(cross(AB,AC));
+    double area = np_linalg_norm(cross(AB, AC));
     double CD = area / np_linalg_norm(AB);
     return CD;
 }
@@ -134,8 +134,8 @@ int main() {
     std::vector<int> C;
     int a, b, f, g, h, i;
     double c, d, e;
-    
-    
+
+
 
     //std::string line;
 
@@ -143,9 +143,9 @@ int main() {
     if (in.is_open()) {
         while (in >> a >> b >> c >> d >> e >> f >> g >> h >> i) {
             //std::cout << line << std::endl;
-           
+
             // обработать line
-            X2D.push_back(a); 
+            X2D.push_back(a);
             Y2D.push_back(b);
             X3D.push_back(c);
             Y3D.push_back(d);
@@ -174,7 +174,7 @@ int main() {
         std::cout << X[i] << '\n';
     }
     std::cout << *max_element(X.begin(), X.end());
-    
+
     double Xmin = *min_element(X.begin(), X.end());
     double Xmax = *max_element(X.begin(), X.end());
 
@@ -233,7 +233,7 @@ int main() {
     std::cout << std::endl << "M[] points:" << std::endl;
     for (auto it = M.begin(); it != M.end(); it++)
         std::cout << it->Name << ": [" << it->NumberOfPoint << "]" << std::endl;
-        
+
     // Сортировка
     M.sort();
     M.reverse();
@@ -275,7 +275,7 @@ int main() {
             P.push_back(*it);
             // Если нужная точка найдена, прекращаем перебор
             break;
-        }   
+        }
     }
     auto& P1 = P.back();
 
@@ -285,10 +285,25 @@ int main() {
     std::cout << P1.Name << "[" << P1.NumberOfPoint << "] (" << P1.X << ", " << P1.Y << ", " << P1.Z << std::endl;
 #pragma endregion
 
+    // Вычисление длины 
+
+    double length = sqrt(pow(P1.X - P0.X, 2) +
+        pow(P1.Y - P0.Y, 2) +
+        pow(P1.Z - P0.Z, 2));
+
+
+    std::cout << " Diag distance is " << length << std::endl;
+
+
     // Вычисление ширины
     std::vector<double> dists;
     for (size_t i = 0; i < X.size(); i++) {
-        //
+        std::vector<double> a = { P0.X, P0.Y, P0.Z };
+        std::vector<double> b = { P1.X, P1.Y, P1.Z };
+        std::vector<double> p = { X[i], Y[i], Z[i] };
+        dists.push_back(lineseg_dist(p, a, b));
     }
-
+    double max_dist = *max_element(dists.begin(), dists.end());
+    std::cout << " MAX width distance: " << max_dist << std::endl;
+    std::cout << " Width: " << 2 * max_dist << std::endl;
 }
