@@ -122,6 +122,128 @@ double lineseg_dist(std::vector<double> p, std::vector<double> a, std::vector<do
     return CD;
 }
 
+void get_sizes(std::vector<double> X, std::vector<double> Y, std::vector<double> Z, double* L, double* W, double* H, double* Length, double* Width)
+{
+    double Xmin = *min_element(X.begin(), X.end());
+    double Xmax = *max_element(X.begin(), X.end());
+
+    double Ymin = *min_element(Y.begin(), Y.end());
+    double Ymax = *max_element(Y.begin(), Y.end());
+
+    double Zmin = *min_element(Z.begin(), Z.end());
+    double Zmax = *max_element(Z.begin(), Z.end());
+
+    double X0 = Xmin + (Xmax - Xmin) / 2.0;
+    double Y0 = Ymin + (Ymax - Ymin) / 2.0;
+    double Z0 = Zmin + (Zmax - Zmin) / 2.0;
+
+    Point3D M0 = Point3D(X0, Y0, Z0, "M0");
+    Point3D M1 = Point3D(Xmin, Ymin, Zmin, "M1");
+    Point3D M2 = Point3D(Xmax, Ymin, Zmin, "M2");
+    Point3D M3 = Point3D(Xmax, Ymax, Zmin, "M3");
+    Point3D M4 = Point3D(Xmin, Ymax, Zmin, "M4");
+    Point3D M5 = Point3D(Xmin, Ymin, Zmax, "M5");
+    Point3D M6 = Point3D(Xmax, Ymin, Zmax, "M6");
+    Point3D M7 = Point3D(Xmax, Ymax, Zmax, "M7");
+    Point3D M8 = Point3D(Xmin, Ymax, Zmax, "M8");
+
+    size_t m1 = get_sum_count(X, Y, Z, M1, M0);
+    size_t m2 = get_sum_count(X, Y, Z, M2, M0);
+    size_t m3 = get_sum_count(X, Y, Z, M3, M0);
+    size_t m4 = get_sum_count(X, Y, Z, M4, M0);
+    size_t m5 = get_sum_count(X, Y, Z, M5, M0);
+    size_t m6 = get_sum_count(X, Y, Z, M6, M0);
+    size_t m7 = get_sum_count(X, Y, Z, M7, M0);
+    size_t m8 = get_sum_count(X, Y, Z, M8, M0);
+
+#pragma region Расчет осевых точек
+    // Устанавливаем кол-во точек около габаритной точки
+    M1.setNumberOfPoint(m1);
+    M2.setNumberOfPoint(m2);
+    M3.setNumberOfPoint(m3);
+    M4.setNumberOfPoint(m4);
+    M5.setNumberOfPoint(m5);
+    M6.setNumberOfPoint(m6);
+    M7.setNumberOfPoint(m7);
+    M8.setNumberOfPoint(m8);
+
+    // Формируем список
+    std::list<Point3D> M;
+    M.push_back(M1);
+    M.push_back(M2);
+    M.push_back(M3);
+    M.push_back(M4);
+    M.push_back(M5);
+    M.push_back(M6);
+    M.push_back(M7);
+    M.push_back(M8);
+
+    // Сортировка
+    M.sort();
+    M.reverse();
+
+    std::cout << std::endl;
+    // Формируем список осевых точек
+    std::list<Point3D> P;
+    // Первая точка берется из отсортированного списка MD
+    P.push_back(M.front());
+    auto& P0 = M.front();
+
+    double m0_dist;
+    double p0_dist;
+    bool same_x;
+    bool same_y;
+    bool same_z;
+    bool same_xyz;
+
+    // Начинаем проверку со второй точки
+    for (auto it = std::next(M.begin()); it != M.end(); ++it)
+    {
+        m0_dist = get_distance(*it, M0);  // Расстояние от текущей точки до центра масс
+        p0_dist = get_distance(*it, P0);  // Расстояние между точками P0 и текущей
+
+        // Проверяем, не лежат ли точки в одной плоскости
+        same_x = it->X == P0.X;
+        same_y = it->Y == P0.Y;
+        same_z = it->Z == P0.Z;
+        same_xyz = !(same_x || same_y || same_z);
+        // if (m0_dist < p0_dist)
+        if ((m0_dist < p0_dist) && same_xyz)
+        {
+            // Добавляем найденную точку в список
+            P.push_back(*it);
+            // Если нужная точка найдена, прекращаем перебор
+            break;
+        }
+    }
+    auto& P1 = P.back();
+
+#pragma endregion
+
+    // Вычисление длины
+    double length = sqrt(pow(P1.X - P0.X, 2) +
+        pow(P1.Y - P0.Y, 2) +
+        pow(P1.Z - P0.Z, 2));
+
+    // Вычисление ширины
+    std::vector<double> dists;
+    for (size_t i = 0; i < X.size(); i++) {
+        std::vector<double> a = { P0.X, P0.Y, P0.Z };
+        std::vector<double> b = { P1.X, P1.Y, P1.Z };
+        std::vector<double> p = { X[i], Y[i], Z[i] };
+        dists.push_back(lineseg_dist(p, a, b));
+    }
+    double max_dist = *max_element(dists.begin(), dists.end()) * 2;
+
+    // Добавить расчет
+    *L = get_distance(M1, M2);
+    *W = get_distance(M2, M3);
+    *H = get_distance(M3, M7);
+
+    *Length = length;
+    *Width = max_dist;
+}
+
 int main() {
     std::vector<int> X2D;
     std::vector<int> Y2D;
@@ -306,4 +428,12 @@ int main() {
     double max_dist = *max_element(dists.begin(), dists.end());
     std::cout << " MAX width distance: " << max_dist << std::endl;
     std::cout << " Width: " << 2 * max_dist << std::endl;
+
+    double L, W, H, Length, Width;
+    get_sizes(X, Y, Z, &L, &W, &H, &Length, &Width);
+    std::cout << "L = " << L << std::endl;
+    std::cout << "W = " << W << std::endl;
+    std::cout << "H = " << H << std::endl;    
+    std::cout << "Length = " << Length << std::endl;
+    std::cout << "Width = " << Width << std::endl;
 }
